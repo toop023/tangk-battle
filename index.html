@@ -89,7 +89,7 @@ document.getElementById('restartBtn').onclick = function() {
   startGame();
 };
 
-// 方向键 - 简单直接
+// 方向键
 var btnU = document.getElementById('btnU');
 var btnD = document.getElementById('btnD');
 var btnL = document.getElementById('btnL');
@@ -165,32 +165,35 @@ function initLevel() {
     map[y] = [];
     for (var x = 0; x < MW; x++) map[y][x] = 0;
   }
-  // 随机障碍物
-  for (var i = 0; i < 20; i++) {
-    var x = 1 + Math.floor(Math.random() * (MW - 2));
-    var y = 1 + Math.floor(Math.random() * (MH - 4));
-    map[y][x] = Math.random() > 0.5 ? 1 : 2;
+  
+  // 障碍物 - 集中在中间，两边留出通道
+  for (var i = 0; i < 12; i++) {
+    var x = 3 + Math.floor(Math.random() * 7);
+    var y = 3 + Math.floor(Math.random() * 5);
+    map[y][x] = 1;
   }
-  // 基地
+  
+  // 基地 - 底部中央
   var bx = Math.floor(MW / 2) - 1, by = MH - 2;
   map[by][bx] = 3; map[by][bx + 1] = 3;
   map[by - 1][bx] = 1; map[by - 1][bx + 1] = 1;
 
   player = { x: TS * 2, y: TS * (MH - 2), dir: 'up', inv: false, al: true };
+  
+  // 敌人 - 顶部，水平分布
   enemies = [];
   var ec = Math.min(3 + game.level, 6);
   for (var i = 0; i < ec; i++) {
     enemies.push({
-      x: TS * (i * 4 + 1),
+      x: TS * (i * 3 + 1),
       y: TS,
       dir: 'down',
-      cd: 0,
       al: true,
-      shootTimer: 0,
-      moveTimer: 0,
-      targetDir: 'down'
+      shootCd: 0,
+      moveCd: 0
     });
   }
+  
   bullets = [];
   updateHUD();
 }
@@ -213,18 +216,18 @@ function resizeCanvas() {
   canvas.style.height = Math.floor(gH * scale) + 'px';
 }
 
-function canMove(x, y, sz) {
-  if (x < 0 || x + sz > canvas.width || y < 0 || y + sz > canvas.height) return false;
-  var tx1 = Math.floor(x / TS), ty1 = Math.floor(y / TS);
-  var tx2 = Math.floor((x + sz - 1) / TS), ty2 = Math.floor((y + sz - 1) / TS);
-  for (var ty = ty1; ty <= ty2; ty++) {
-    for (var tx = tx1; tx <= tx2; tx++) {
-      if (ty < 0 || ty >= MH || tx < 0 || tx >= MW) return false;
+function isBlocked(x, y, sz) {
+  var padding = 2;
+  for (var py = y + padding; py < y + sz - padding; py += TS / 2) {
+    for (var px = x + padding; px < x + sz - padding; px += TS / 2) {
+      var tx = Math.floor(px / TS);
+      var ty = Math.floor(py / TS);
+      if (ty < 0 || ty >= MH || tx < 0 || tx >= MW) return true;
       var t = map[ty][tx];
-      if (t === 1 || t === 2 || t === 3) return false;
+      if (t === 1 || t === 2 || t === 3) return true;
     }
   }
-  return true;
+  return false;
 }
 
 function update() {
@@ -234,51 +237,68 @@ function update() {
 
   // 玩家移动
   if (player.al) {
-    if (moveDir.up && canMove(player.x, player.y - spd, sz)) { player.dir = 'up'; player.y -= spd; }
-    if (moveDir.down && canMove(player.x, player.y + spd, sz)) { player.dir = 'down'; player.y += spd; }
-    if (moveDir.left && canMove(player.x - spd, player.y, sz)) { player.dir = 'left'; player.x -= spd; }
-    if (moveDir.right && canMove(player.x + spd, player.y, sz)) { player.dir = 'right'; player.x += spd; }
+    if (moveDir.up && !isBlocked(player.x, player.y - spd, sz)) { player.dir = 'up'; player.y -= spd; }
+    if (moveDir.down && !isBlocked(player.x, player.y + spd, sz)) { player.dir = 'down'; player.y += spd; }
+    if (moveDir.left && !isBlocked(player.x - spd, player.y, sz)) { player.dir = 'left'; player.x -= spd; }
+    if (moveDir.right && !isBlocked(player.x + spd, player.y, sz)) { player.dir = 'right'; player.x += spd; }
+    
+    // 边界
+    if (player.x < 0) player.x = 0;
+    if (player.x > canvas.width - sz) player.x = canvas.width - sz;
+    if (player.y < 0) player.y = 0;
+    if (player.y > canvas.height - sz) player.y = canvas.height - sz;
   }
 
-  // 敌人AI - 直接朝玩家移动
-  enemies.forEach(function(e) {
+  // 敌人AI - 简单直接
+  enemies.forEach(function(e, ei) {
     if (!e.al) return;
 
-    e.moveTimer++;
-    e.shootTimer++;
+    e.moveCd++;
+    e.shootCd++;
 
-    // 每隔一段时间决定新方向
-    if (e.moveTimer > 30) {
-      e.moveTimer = 0;
-      // 计算朝向玩家的方向
+    // 每帧都尝试移动
+    if (e.moveCd > 5) {
+      e.moveCd = 0;
+      
       var dx = player.x - e.x;
       var dy = player.y - e.y;
-      // 优先水平或垂直移动
+      var moved = false;
+      
+      // 优先往玩家方向走
       if (Math.abs(dx) > Math.abs(dy)) {
-        e.targetDir = dx > 0 ? 'right' : 'left';
+        // 水平为主
+        if (dx > 0 && !isBlocked(e.x + 2, e.y, sz)) { e.x += 2; e.dir = 'right'; moved = true; }
+        else if (dx < 0 && !isBlocked(e.x - 2, e.y, sz)) { e.x -= 2; e.dir = 'left'; moved = true; }
+        else if (dy > 0 && !isBlocked(e.x, e.y + 2, sz)) { e.y += 2; e.dir = 'down'; moved = true; }
+        else if (dy < 0 && !isBlocked(e.x, e.y - 2, sz)) { e.y -= 2; e.dir = 'up'; moved = true; }
       } else {
-        e.targetDir = dy > 0 ? 'down' : 'up';
+        // 垂直为主
+        if (dy > 0 && !isBlocked(e.x, e.y + 2, sz)) { e.y += 2; e.dir = 'down'; moved = true; }
+        else if (dy < 0 && !isBlocked(e.x, e.y - 2, sz)) { e.y -= 2; e.dir = 'up'; moved = true; }
+        else if (dx > 0 && !isBlocked(e.x + 2, e.y, sz)) { e.x += 2; e.dir = 'right'; moved = true; }
+        else if (dx < 0 && !isBlocked(e.x - 2, e.y, sz)) { e.x -= 2; e.dir = 'left'; moved = true; }
+      }
+      
+      // 随机移动
+      if (!moved) {
+        var dirs = ['up', 'down', 'left', 'right'];
+        for (var i = 0; i < 4; i++) {
+          var di = Math.floor(Math.random() * 4);
+          var d = dirs[di];
+          var mv = { up: [0, -2], down: [0, 2], left: [-2, 0], right: [2, 0] };
+          if (!isBlocked(e.x + mv[d][0], e.y + mv[d][1], sz)) {
+            e.x += mv[d][0];
+            e.y += mv[d][1];
+            e.dir = d;
+            break;
+          }
+        }
       }
     }
 
-    // 尝试向目标方向移动
-    var mv = { up: [0, -2], down: [0, 2], left: [-2, 0], right: [2, 0] };
-    var nx = e.x + mv[e.targetDir][0];
-    var ny = e.y + mv[e.targetDir][1];
-
-    if (canMove(nx, ny, sz)) {
-      e.x = nx;
-      e.y = ny;
-      e.dir = e.targetDir;
-    } else {
-      // 撞墙了，换方向
-      e.moveTimer = 31;
-    }
-
-    // 射击 - 朝玩家方向
-    if (e.shootTimer > 80 && Math.random() < 0.08) {
-      e.shootTimer = 0;
-      // 计算射击方向
+    // 射击
+    if (e.shootCd > 60 && Math.random() < 0.06) {
+      e.shootCd = 0;
       var sdx = player.x - e.x;
       var sdy = player.y - e.y;
       var sdir;
@@ -291,21 +311,21 @@ function update() {
     }
   });
 
-  // 子弹移动和碰撞
-  var bspd = 7;
+  // 子弹
+  var bspd = 8;
   bullets.forEach(function(b) {
     if (!b.al) return;
     var mv = { up: [0, -bspd], down: [0, bspd], left: [-bspd, 0], right: [bspd, 0] };
     b.x += mv[b.dir][0];
     b.y += mv[b.dir][1];
 
-    // 边界检测
+    // 边界
     if (b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) {
       b.al = false;
       return;
     }
 
-    // 障碍物碰撞
+    // 障碍物
     var tx = Math.floor(b.x / TS);
     var ty = Math.floor(b.y / TS);
     if (ty >= 0 && ty < MH && tx >= 0 && tx < MW) {
@@ -314,10 +334,10 @@ function update() {
       if (map[ty][tx] === 3) { b.al = false; baseHit = true; endGame(false); return; }
     }
 
-    // 玩家子弹打敌人
+    // 玩家子弹 - 范围更大
     if (b.isPlayer) {
       enemies.forEach(function(e) {
-        if (e.al && b.x > e.x && b.x < e.x + sz && b.y > e.y && b.y < e.y + sz) {
+        if (e.al && b.x > e.x - 5 && b.x < e.x + sz + 5 && b.y > e.y - 5 && b.y < e.y + sz + 5) {
           e.al = false;
           b.al = false;
           game.score += 100;
@@ -326,7 +346,7 @@ function update() {
       });
     } else {
       // 敌人子弹打玩家
-      if (player.al && !player.inv && b.x > player.x && b.x < player.x + sz && b.y > player.y && b.y < player.y + sz) {
+      if (player.al && !player.inv && b.x > player.x - 5 && b.x < player.x + sz + 5 && b.y > player.y - 5 && b.y < player.y + sz + 5) {
         b.al = false;
         game.lives--;
         updateHUD();
