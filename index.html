@@ -7,50 +7,39 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{background:#111;color:#fff;font-family:Arial,sans-serif;overflow:hidden;width:100vw;height:100vh}
-
-/* 开始界面 */
-#startScreen{position:fixed;top:0;left:0;width:100%;height:100%;background:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999}
-#startScreen h1{font-size:36px;color:#4CAF50;margin-bottom:20px}
+#startScreen,#gameScreen,#endScreen{position:fixed;top:0;left:0;width:100%;height:100%}
+#startScreen{background:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:30}
+#startScreen h1{font-size:40px;color:#4CAF50;margin-bottom:20px}
 #startScreen p{color:#aaa;margin-bottom:30px;font-size:16px}
-#startBtn{width:200px;height:60px;font-size:20px;background:#4CAF50;color:#fff;border:none;border-radius:10px;cursor:pointer;display:block}
-
-/* 游戏界面 */
-#gameScreen{position:fixed;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column}
-#hud{height:40px;background:#222;display:flex;align-items:center;justify-content:space-around;font-size:14px;flex-shrink:0}
-#canvasWrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#startBtn{width:220px;height:65px;font-size:22px;background:#4CAF50;color:#fff;border:none;border-radius:12px;cursor:pointer}
+#gameScreen{display:none;flex-direction:column}
+#hud{height:44px;background:#222;display:flex;align-items:center;justify-content:space-around;font-size:16px;flex-shrink:0}
+#canvasWrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#1a1a1a}
 canvas{display:block}
-#ctrlArea{height:160px;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:space-between;padding:10px 20px;flex-shrink:0}
-
-/* 方向键 */
-#dpad{display:grid;grid-template-columns:65px 65px 65px;grid-template-rows:65px 65px 65px;gap:4px}
-.dBtn{background:#333;border:3px solid #555;border-radius:12px;color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-user-select:none;user-select:none}
-.dBtn:active{background:#555}
+#ctrlArea{height:170px;background:linear-gradient(to top,rgba(0,0,0,0.95),rgba(0,0,0,0.7));display:flex;align-items:center;justify-content:space-between;padding:15px 25px;flex-shrink:0}
+#dpad{display:grid;grid-template-columns:70px 70px 70px;grid-template-rows:70px 70px 70px;gap:5px}
+.dBtn{background:linear-gradient(145deg,#444,#333);border:3px solid #666;border-radius:15px;color:#fff;font-size:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+.dBtn:active{background:linear-gradient(145deg,#555,#444);border-color:#888}
 .dBtn.up{grid-column:2;grid-row:1}
 .dBtn.lt{grid-column:1;grid-row:2}
 .dBtn.rt{grid-column:3;grid-row:2}
 .dBtn.dn{grid-column:2;grid-row:3}
-
-/* 发射按钮 */
-#fireBtn{width:90px;height:90px;background:#f44336;border:4px solid #fff;border-radius:50%;color:#fff;font-size:14px;font-weight:bold;cursor:pointer;-webkit-user-select:none;user-select:none}
-#fireBtn:active{background:#b71c1c;transform:scale(0.95)}
-
-/* 结束界面 */
-#endScreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:999}
-#endScreen h2{font-size:28px;margin-bottom:15px}
-#endScreen p{font-size:18px;color:#ffd700;margin-bottom:25px}
-#restartBtn{width:180px;height:55px;font-size:18px;background:#4CAF50;color:#fff;border:none;border-radius:10px;cursor:pointer}
+#fireBtn{width:95px;height:95px;background:linear-gradient(145deg,#f44336,#c62828);border:4px solid #fff;border-radius:50%;color:#fff;font-size:16px;font-weight:bold;cursor:pointer;touch-action:manipulation}
+#fireBtn:active{transform:scale(0.92);background:linear-gradient(145deg,#d32f2f,#b71c1c)}
+#endScreen{background:rgba(0,0,0,0.92);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:30}
+#endScreen h2{font-size:32px;margin-bottom:20px}
+#endScreen p{font-size:22px;color:#ffd700;margin-bottom:30px}
+#restartBtn{width:200px;height:60px;font-size:20px;background:#4CAF50;color:#fff;border:none;border-radius:12px;cursor:pointer}
 </style>
 </head>
 <body>
 
-<!-- 开始界面 -->
 <div id="startScreen">
   <h1>🎮 坦克大战</h1>
-  <p>消灭敌人，保护基地！</p>
+  <p>消灭敌人 保护基地</p>
   <button id="startBtn">开始游戏</button>
 </div>
 
-<!-- 游戏界面 -->
 <div id="gameScreen">
   <div id="hud">
     <span>❤️ <b id="lives">3</b></span>
@@ -71,7 +60,6 @@ canvas{display:block}
   </div>
 </div>
 
-<!-- 结束界面 -->
 <div id="endScreen">
   <h2 id="endTitle">游戏结束</h2>
   <p>得分: <span id="endScore">0</span></p>
@@ -79,7 +67,6 @@ canvas{display:block}
 </div>
 
 <script>
-// ===== 初始化 =====
 var canvas = document.getElementById('c');
 var ctx = canvas.getContext('2d');
 var TS = 32, MW = 13, MH = 11;
@@ -89,7 +76,7 @@ var moveDir = { up: false, down: false, left: false, right: false };
 var lastShot = 0;
 var gameLoopId = null;
 
-// ===== 开始按钮 =====
+// 界面切换
 document.getElementById('startBtn').onclick = function() {
   document.getElementById('startScreen').style.display = 'none';
   document.getElementById('gameScreen').style.display = 'flex';
@@ -102,45 +89,64 @@ document.getElementById('restartBtn').onclick = function() {
   startGame();
 };
 
-// ===== 方向键 =====
-function bindBtn(id, dir) {
-  var el = document.getElementById(id);
-  el.addEventListener('touchstart', function(e) { e.preventDefault(); moveDir[dir] = true; }, { passive: false });
-  el.addEventListener('touchend', function(e) { e.preventDefault(); moveDir[dir] = false; }, { passive: false });
-  el.addEventListener('mousedown', function() { moveDir[dir] = true; });
-  el.addEventListener('mouseup', function() { moveDir[dir] = false; });
-  el.addEventListener('mouseleave', function() { moveDir[dir] = false; });
-}
-bindBtn('btnU', 'up');
-bindBtn('btnD', 'down');
-bindBtn('btnL', 'left');
-bindBtn('btnR', 'right');
+// 方向键 - 简单直接
+var btnU = document.getElementById('btnU');
+var btnD = document.getElementById('btnD');
+var btnL = document.getElementById('btnL');
+var btnR = document.getElementById('btnR');
 
-// ===== 发射按钮 =====
-document.getElementById('fireBtn').addEventListener('touchstart', function(e) {
-  e.preventDefault();
-  doShoot();
-}, { passive: false });
-document.getElementById('fireBtn').addEventListener('mousedown', function() {
-  doShoot();
-});
+btnU.addEventListener('touchstart', function(e) { e.preventDefault(); moveDir.up = true; }, false);
+btnU.addEventListener('touchend', function(e) { e.preventDefault(); moveDir.up = false; }, false);
+btnU.addEventListener('mousedown', function() { moveDir.up = true; });
+btnU.addEventListener('mouseup', function() { moveDir.up = false; });
+btnU.addEventListener('mouseleave', function() { moveDir.up = false; });
 
-// ===== 键盘 =====
+btnD.addEventListener('touchstart', function(e) { e.preventDefault(); moveDir.down = true; }, false);
+btnD.addEventListener('touchend', function(e) { e.preventDefault(); moveDir.down = false; }, false);
+btnD.addEventListener('mousedown', function() { moveDir.down = true; });
+btnD.addEventListener('mouseup', function() { moveDir.down = false; });
+btnD.addEventListener('mouseleave', function() { moveDir.down = false; });
+
+btnL.addEventListener('touchstart', function(e) { e.preventDefault(); moveDir.left = true; }, false);
+btnL.addEventListener('touchend', function(e) { e.preventDefault(); moveDir.left = false; }, false);
+btnL.addEventListener('mousedown', function() { moveDir.left = true; });
+btnL.addEventListener('mouseup', function() { moveDir.left = false; });
+btnL.addEventListener('mouseleave', function() { moveDir.left = false; });
+
+btnR.addEventListener('touchstart', function(e) { e.preventDefault(); moveDir.right = true; }, false);
+btnR.addEventListener('touchend', function(e) { e.preventDefault(); moveDir.right = false; }, false);
+btnR.addEventListener('mousedown', function() { moveDir.right = true; });
+btnR.addEventListener('mouseup', function() { moveDir.right = false; });
+btnR.addEventListener('mouseleave', function() { moveDir.right = false; });
+
+// 发射按钮
+var fireBtn = document.getElementById('fireBtn');
+fireBtn.addEventListener('touchstart', function(e) { e.preventDefault(); shoot(); }, false);
+fireBtn.addEventListener('mousedown', function() { shoot(); });
+
+// 键盘
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'ArrowUp' || e.key === 'w') moveDir.up = true;
-  if (e.key === 'ArrowDown' || e.key === 's') moveDir.down = true;
-  if (e.key === 'ArrowLeft' || e.key === 'a') moveDir.left = true;
-  if (e.key === 'ArrowRight' || e.key === 'd') moveDir.right = true;
-  if (e.key === ' ') { e.preventDefault(); doShoot(); }
+  if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') moveDir.up = true;
+  if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') moveDir.down = true;
+  if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') moveDir.left = true;
+  if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') moveDir.right = true;
+  if (e.key === ' ') { e.preventDefault(); shoot(); }
 });
 document.addEventListener('keyup', function(e) {
-  if (e.key === 'ArrowUp' || e.key === 'w') moveDir.up = false;
-  if (e.key === 'ArrowDown' || e.key === 's') moveDir.down = false;
-  if (e.key === 'ArrowLeft' || e.key === 'a') moveDir.left = false;
-  if (e.key === 'ArrowRight' || e.key === 'd') moveDir.right = false;
+  if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') moveDir.up = false;
+  if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') moveDir.down = false;
+  if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') moveDir.left = false;
+  if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') moveDir.right = false;
 });
 
-// ===== 游戏逻辑 =====
+function shoot() {
+  if (!game.running || !player.al) return;
+  var now = Date.now();
+  if (now - lastShot < 350) return;
+  lastShot = now;
+  bullets.push({ x: player.x + TS / 2 - 4, y: player.y + TS / 2 - 4, dir: player.dir, isPlayer: true, al: true });
+}
+
 function startGame() {
   game.running = true;
   game.lives = 3;
@@ -159,11 +165,11 @@ function initLevel() {
     map[y] = [];
     for (var x = 0; x < MW; x++) map[y][x] = 0;
   }
-  // 随机砖块
-  for (var i = 0; i < 22; i++) {
+  // 随机障碍物
+  for (var i = 0; i < 20; i++) {
     var x = 1 + Math.floor(Math.random() * (MW - 2));
     var y = 1 + Math.floor(Math.random() * (MH - 4));
-    map[y][x] = Math.random() > 0.5 ? 2 : 1; // 1=砖 2=钢
+    map[y][x] = Math.random() > 0.5 ? 1 : 2;
   }
   // 基地
   var bx = Math.floor(MW / 2) - 1, by = MH - 2;
@@ -174,7 +180,16 @@ function initLevel() {
   enemies = [];
   var ec = Math.min(3 + game.level, 6);
   for (var i = 0; i < ec; i++) {
-    enemies.push({ x: TS * (i * 4 + 1), y: TS, dir: 'down', cd: 0, al: true, mv: 0 });
+    enemies.push({
+      x: TS * (i * 4 + 1),
+      y: TS,
+      dir: 'down',
+      cd: 0,
+      al: true,
+      shootTimer: 0,
+      moveTimer: 0,
+      targetDir: 'down'
+    });
   }
   bullets = [];
   updateHUD();
@@ -204,21 +219,12 @@ function canMove(x, y, sz) {
   var tx2 = Math.floor((x + sz - 1) / TS), ty2 = Math.floor((y + sz - 1) / TS);
   for (var ty = ty1; ty <= ty2; ty++) {
     for (var tx = tx1; tx <= tx2; tx++) {
-      var t = map[ty] && map[ty][tx];
+      if (ty < 0 || ty >= MH || tx < 0 || tx >= MW) return false;
+      var t = map[ty][tx];
       if (t === 1 || t === 2 || t === 3) return false;
     }
   }
   return true;
-}
-
-function doShoot() {
-  if (!game.running || !player.al) return;
-  var now = Date.now();
-  if (now - lastShot < 350) return;
-  lastShot = now;
-  var bx = player.x + TS / 2 - 4;
-  var by = player.y + TS / 2 - 4;
-  bullets.push({ x: bx, y: by, dir: player.dir, isPlayer: true, al: true });
 }
 
 function update() {
@@ -234,58 +240,111 @@ function update() {
     if (moveDir.right && canMove(player.x + spd, player.y, sz)) { player.dir = 'right'; player.x += spd; }
   }
 
-  // 敌人移动
+  // 敌人AI - 直接朝玩家移动
   enemies.forEach(function(e) {
     if (!e.al) return;
-    e.mv++;
-    if (e.mv > 40) {
-      e.mv = 0;
-      var dirs = ['up', 'down', 'left', 'right'];
-      e.dir = dirs[Math.floor(Math.random() * 4)];
+
+    e.moveTimer++;
+    e.shootTimer++;
+
+    // 每隔一段时间决定新方向
+    if (e.moveTimer > 30) {
+      e.moveTimer = 0;
+      // 计算朝向玩家的方向
+      var dx = player.x - e.x;
+      var dy = player.y - e.y;
+      // 优先水平或垂直移动
+      if (Math.abs(dx) > Math.abs(dy)) {
+        e.targetDir = dx > 0 ? 'right' : 'left';
+      } else {
+        e.targetDir = dy > 0 ? 'down' : 'up';
+      }
     }
-    var mv = { up: [0, -1.5], down: [0, 1.5], left: [-1.5, 0], right: [1.5, 0] };
-    var nx = e.x + mv[e.dir][0], ny = e.y + mv[e.dir][1];
-    if (canMove(nx, ny, sz)) { e.x = nx; e.y = ny; }
-    else { var dirs = ['up', 'down', 'left', 'right']; e.dir = dirs[Math.floor(Math.random() * 4)]; }
-    e.cd++;
-    if (e.cd > 60 && Math.random() < 0.05) {
-      e.cd = 0;
-      bullets.push({ x: e.x + TS / 2 - 4, y: e.y + TS / 2 - 4, dir: e.dir, isPlayer: false, al: true });
+
+    // 尝试向目标方向移动
+    var mv = { up: [0, -2], down: [0, 2], left: [-2, 0], right: [2, 0] };
+    var nx = e.x + mv[e.targetDir][0];
+    var ny = e.y + mv[e.targetDir][1];
+
+    if (canMove(nx, ny, sz)) {
+      e.x = nx;
+      e.y = ny;
+      e.dir = e.targetDir;
+    } else {
+      // 撞墙了，换方向
+      e.moveTimer = 31;
+    }
+
+    // 射击 - 朝玩家方向
+    if (e.shootTimer > 80 && Math.random() < 0.08) {
+      e.shootTimer = 0;
+      // 计算射击方向
+      var sdx = player.x - e.x;
+      var sdy = player.y - e.y;
+      var sdir;
+      if (Math.abs(sdx) > Math.abs(sdy)) {
+        sdir = sdx > 0 ? 'right' : 'left';
+      } else {
+        sdir = sdy > 0 ? 'down' : 'up';
+      }
+      bullets.push({ x: e.x + TS / 2 - 4, y: e.y + TS / 2 - 4, dir: sdir, isPlayer: false, al: true });
     }
   });
 
-  // 子弹移动
+  // 子弹移动和碰撞
   var bspd = 7;
   bullets.forEach(function(b) {
     if (!b.al) return;
     var mv = { up: [0, -bspd], down: [0, bspd], left: [-bspd, 0], right: [bspd, 0] };
-    b.x += mv[b.dir][0]; b.y += mv[b.dir][1];
-    if (b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) { b.al = false; return; }
-    var tx = Math.floor(b.x / TS), ty = Math.floor(b.y / TS);
-    if (map[ty] && map[ty][tx] === 1) { map[ty][tx] = 0; b.al = false; return; }
-    if (map[ty] && map[ty][tx] === 2) { b.al = false; return; }
-    if (map[ty] && map[ty][tx] === 3) { b.al = false; baseHit = true; endGame(false); return; }
+    b.x += mv[b.dir][0];
+    b.y += mv[b.dir][1];
+
+    // 边界检测
+    if (b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) {
+      b.al = false;
+      return;
+    }
+
+    // 障碍物碰撞
+    var tx = Math.floor(b.x / TS);
+    var ty = Math.floor(b.y / TS);
+    if (ty >= 0 && ty < MH && tx >= 0 && tx < MW) {
+      if (map[ty][tx] === 1) { map[ty][tx] = 0; b.al = false; return; }
+      if (map[ty][tx] === 2) { b.al = false; return; }
+      if (map[ty][tx] === 3) { b.al = false; baseHit = true; endGame(false); return; }
+    }
+
+    // 玩家子弹打敌人
     if (b.isPlayer) {
       enemies.forEach(function(e) {
         if (e.al && b.x > e.x && b.x < e.x + sz && b.y > e.y && b.y < e.y + sz) {
-          e.al = false; b.al = false;
-          game.score += 100; updateHUD();
+          e.al = false;
+          b.al = false;
+          game.score += 100;
+          updateHUD();
         }
       });
     } else {
+      // 敌人子弹打玩家
       if (player.al && !player.inv && b.x > player.x && b.x < player.x + sz && b.y > player.y && b.y < player.y + sz) {
-        b.al = false; game.lives--;
+        b.al = false;
+        game.lives--;
         updateHUD();
-        if (game.lives <= 0) { endGame(false); return; }
-        player.x = TS * 2; player.y = TS * (MH - 2);
+        if (game.lives <= 0) {
+          endGame(false);
+          return;
+        }
+        player.x = TS * 2;
+        player.y = TS * (MH - 2);
         player.inv = true;
-        setTimeout(function() { player.inv = false; }, 2000);
+        setTimeout(function() { player.inv = false; }, 2500);
       }
     }
   });
+
   bullets = bullets.filter(function(b) { return b.al; });
 
-  // 通关
+  // 清空敌人过关
   if (enemies.every(function(e) { return !e.al; })) {
     game.level++;
     initLevel();
@@ -301,12 +360,17 @@ function drawTank(t, col) {
   ctx.rotate(ang[t.dir] * Math.PI / 180);
   var s = TS - 4;
   ctx.fillStyle = col;
+  ctx.shadowColor = col;
+  ctx.shadowBlur = 6;
   ctx.fillRect(-s / 2, -s / 2, s, s);
+  ctx.shadowBlur = 0;
   ctx.fillStyle = '#222';
   ctx.fillRect(-s / 2, -s / 2, 7, s);
   ctx.fillRect(s / 2 - 7, -s / 2, 7, s);
   ctx.fillStyle = col === '#4CAF50' ? '#2E7D32' : '#b71c1c';
-  ctx.beginPath(); ctx.arc(0, 0, s / 3.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath();
+  ctx.arc(0, 0, s / 3.5, 0, Math.PI * 2);
+  ctx.fill();
   ctx.fillStyle = '#444';
   ctx.fillRect(-3, -s / 2 - 10, 6, s / 2 + 10);
   ctx.restore();
@@ -319,19 +383,31 @@ function draw() {
   // 地图
   for (var y = 0; y < MH; y++) {
     for (var x = 0; x < MW; x++) {
-      var t = map[y][x], px = x * TS, py = y * TS;
+      var t = map[y][x];
+      var px = x * TS, py = y * TS;
       if (t === 1) {
-        ctx.fillStyle = '#8B4513'; ctx.fillRect(px, py, TS, TS);
-        ctx.strokeStyle = '#654321'; ctx.lineWidth = 1;
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(px, py, TS, TS);
+        ctx.strokeStyle = '#654321';
+        ctx.lineWidth = 1;
         ctx.strokeRect(px, py, TS / 2, TS / 2);
         ctx.strokeRect(px + TS / 2, py + TS / 2, TS / 2, TS / 2);
       } else if (t === 2) {
-        ctx.fillStyle = '#607D8B'; ctx.fillRect(px, py, TS, TS);
-        ctx.strokeStyle = '#90A4AE'; ctx.strokeRect(px + 4, py + 4, TS - 8, TS - 8);
+        ctx.fillStyle = '#607D8B';
+        ctx.fillRect(px, py, TS, TS);
+        ctx.strokeStyle = '#90A4AE';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(px + 4, py + 4, TS - 8, TS - 8);
       } else if (t === 3) {
         ctx.fillStyle = baseHit ? '#333' : '#FFD700';
+        ctx.shadowColor = baseHit ? 'transparent' : '#FFD700';
+        ctx.shadowBlur = baseHit ? 0 : 8;
         ctx.fillRect(px, py, TS, TS);
-        if (!baseHit) { ctx.font = '24px Arial'; ctx.fillText('🏰', px + 2, py + 26); }
+        ctx.shadowBlur = 0;
+        if (!baseHit) {
+          ctx.font = '24px Arial';
+          ctx.fillText('🏰', px + 2, py + 26);
+        }
       }
     }
   }
@@ -344,8 +420,10 @@ function draw() {
   bullets.forEach(function(b) {
     ctx.fillStyle = b.isPlayer ? '#FFD700' : '#ff5252';
     ctx.shadowColor = b.isPlayer ? '#FFD700' : '#ff5252';
-    ctx.shadowBlur = 8;
-    ctx.beginPath(); ctx.arc(b.x + 4, b.y + 4, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.arc(b.x + 4, b.y + 4, 5, 0, Math.PI * 2);
+    ctx.fill();
     ctx.shadowBlur = 0;
   });
 }
